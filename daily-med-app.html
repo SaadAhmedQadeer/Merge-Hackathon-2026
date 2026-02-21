@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Med - Medicine Reminder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #fdf8f0;
+      --warm-white: #fff9f2;
+      --brown: #4a3728;
+      --brown-light: #7a5c48;
+      --accent: #c0392b;
+      --accent-soft: #e8d5d2;
+      --green: #2e7d52;
+      --green-soft: #d4ead9;
+      --border: #e2d8ce;
+      --shadow: 0 2px 12px rgba(74, 55, 40, 0.10);
+    }
+
+    body {
+      font-family: 'Source Sans 3', sans-serif;
+      background: var(--cream);
+      color: var(--brown);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    header {
+      background: var(--brown);
+      color: var(--cream);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-family: 'Lora', serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header .subtitle {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    #clock {
+      font-family: 'Lora', serif;
+      font-size: 1.4rem;
+      text-align: right;
+    }
+
+    #date-display {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      text-align: right;
+    }
+
+    main {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* Add medicine form */
+    .card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-family: 'Lora', serif;
+      font-size: 1.1rem;
+      margin-bottom: 18px;
+      color: var(--brown);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 5px;
+      color: var(--brown-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    input[type="time"],
+    select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.95rem;
+      background: white;
+      color: var(--brown);
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--brown-light);
+    }
+
+    .btn-primary {
+      background: var(--brown);
+      color: var(--cream);
+      border: none;
+      padding: 11px 28px;
+      border-radius: 8px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 6px;
+    }
+
+    .btn-primary:hover { background: var(--brown-light); }
+
+    /* Medicine list */
+    .section-title {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      color: var(--brown);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .med-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.2s;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .med-item:hover { box-shadow: var(--shadow); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .med-item.taken { opacity: 0.5; }
+
+    .med-item.due {
+      border-left: 4px solid var(--accent);
+      background: #fff8f7;
+    }
+
+    .med-dot {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .med-info { flex: 1; }
+
+    .med-name {
+      font-family: 'Lora', serif;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .med-meta {
+      font-size: 0.82rem;
+      color: var(--brown-light);
+      margin-top: 2px;
+    }
+
+    .med-time {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--brown-light);
+      white-space: nowrap;
+    }
+
+    .due-badge {
+      font-size: 0.72rem;
+      background: var(--accent);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .btn-taken {
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid #b0d4bc;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-taken:hover { background: #c0e8ca; }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #bbb;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .btn-remove:hover { color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--brown-light);
+      font-size: 0.9rem;
+      padding: 30px 0;
+    }
+
+    /* Notification toast */
+    #toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--brown);
+      color: var(--cream);
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 0.93rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      max-width: 280px;
+    }
+
+    #toast.show { transform: translateX(0); }
+    #toast strong { display: block; font-family: 'Lora', serif; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Lora', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--brown);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--brown-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Daily Med</h1>
+    <div class="subtitle">Medicine reminder for you and your family</div>
+  </div>
+  <div>
+    <div id="clock">--:--</div>
+    <div id="date-display"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">Medicines</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-taken" style="color: var(--green)">0</div>
+      <div class="stat-label">Taken Today</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-due" style="color: var(--accent)">0</div>
+      <div class="stat-label">Due Now</div>
+    </div>
+  </div>
+
+  <!-- Add medicine -->
+  <div class="card">
+    <h2>Add a Medicine</h2>
+    <div class="form-row">
+      <div>
+        <label>Medicine Name</label>
+        <input type="text" id="med-name" placeholder="e.g. Metformin 500mg" />
+      </div>
+      <div>
+        <label>Reminder Time</label>
+        <input type="time" id="med-time" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Dosage / Instructions</label>
+        <input type="text" id="med-dose" placeholder="e.g. 1 tablet after meals" />
+      </div>
+      <div>
+        <label>Repeat</label>
+        <select id="med-repeat">
+          <option value="daily">Every day</option>
+          <option value="morning">Morning only</option>
+          <option value="night">Night only</option>
+          <option value="once">Just once</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="addMedicine()">Add Reminder</button>
+  </div>
+
+  <!-- Medicine list -->
+  <div class="card">
+    <div class="section-title">Today's Schedule</div>
+    <div id="med-list">
+      <div class="empty-state">No medicines added yet. Add one above to get started.</div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast">
+  <strong id="toast-title">Time for your medicine</strong>
+  <span id="toast-body"></span>
+</div>
+
+<script>
+  let medicines = JSON.parse(localStorage.getItem('dailymed_meds') || '[]');
+  let takenToday = JSON.parse(localStorage.getItem('dailymed_taken_' + today()) || '[]');
+  let alertedToday = new Set();
+
+  function today() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function save() {
+    localStorage.setItem('dailymed_meds', JSON.stringify(medicines));
+    localStorage.setItem('dailymed_taken_' + today(), JSON.stringify(takenToday));
+  }
+
+  function addMedicine() {
+    const name = document.getElementById('med-name').value.trim();
+    const time = document.getElementById('med-time').value;
+    const dose = document.getElementById('med-dose').value.trim();
+    const repeat = document.getElementById('med-repeat').value;
+
+    if (!name || !time) { showToast('Please fill in medicine name and time.', ''); return; }
+
+    medicines.push({ id: Date.now(), name, time, dose, repeat });
+    save();
+    render();
+
+    document.getElementById('med-name').value = '';
+    document.getElementById('med-time').value = '';
+    document.getElementById('med-dose').value = '';
+    showToast('Reminder added', name + ' at ' + formatTime(time));
+  }
+
+  function markTaken(id) {
+    if (!takenToday.includes(id)) { takenToday.push(id); }
+    save();
+    render();
+    const med = medicines.find(m => m.id === id);
+    if (med) showToast('Good job!', med.name + ' marked as taken.');
+  }
+
+  function removeMedicine(id) {
+    medicines = medicines.filter(m => m.id !== id);
+    takenToday = takenToday.filter(t => t !== id);
+    save();
+    render();
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    return ((hour % 12) || 12) + ':' + m + ' ' + ampm;
+  }
+
+  function isNearTime(timeStr) {
+    const now = new Date();
+    const [h, m] = timeStr.split(':').map(Number);
+    const medMinutes = h * 60 + m;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return Math.abs(nowMinutes - medMinutes) <= 5;
+  }
+
+  function render() {
+    const list = document.getElementById('med-list');
+    const sorted = [...medicines].sort((a, b) => a.time.localeCompare(b.time));
+
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="empty-state">No medicines added yet. Add one above to get started.</div>';
+      updateStats(0, 0, 0);
+      return;
+    }
+
+    let html = '';
+    let dueCount = 0;
+
+    sorted.forEach(med => {
+      const taken = takenToday.includes(med.id);
+      const due = !taken && isNearTime(med.time);
+      if (due) dueCount++;
+
+      html += `
+        <div class="med-item ${taken ? 'taken' : ''} ${due ? 'due' : ''}">
+          <div class="med-dot">💊</div>
+          <div class="med-info">
+            <div class="med-name">${med.name}${due ? ' <span class="due-badge">Due Now</span>' : ''}</div>
+            <div class="med-meta">${med.dose || 'No instructions'} &bull; ${med.repeat}</div>
+          </div>
+          <div class="med-time">${formatTime(med.time)}</div>
+          ${taken
+            ? '<span style="color:var(--green);font-size:1.2rem;">&#10003;</span>'
+            : `<button class="btn-taken" onclick="markTaken(${med.id})">Mark Taken</button>`}
+          <button class="btn-remove" onclick="removeMedicine(${med.id})" title="Remove">&#x2715;</button>
+        </div>`;
+    });
+
+    list.innerHTML = html;
+    updateStats(sorted.length, takenToday.length, dueCount);
+  }
+
+  function updateStats(total, taken, due) {
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-taken').textContent = taken;
+    document.getElementById('stat-due').textContent = due;
+  }
+
+  function showToast(title, body) {
+    document.getElementById('toast-title').textContent = title;
+    document.getElementById('toast-body').textContent = body;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+    document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    // Check for due medicines and alert
+    medicines.forEach(med => {
+      if (!takenToday.includes(med.id) && isNearTime(med.time) && !alertedToday.has(med.id)) {
+        alertedToday.add(med.id);
+        showToast('Time for your medicine', med.name + ' - ' + (med.dose || ''));
+        // Browser notification if allowed
+        if (Notification.permission === 'granted') {
+          new Notification('Daily Med Reminder', { body: 'Time to take: ' + med.name });
+        }
+        render();
+      }
+    });
+  }
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  // Add sample medicines on first load so there's something to see
+  if (medicines.length === 0) {
+    const now = new Date();
+    const t1 = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes() + 1).padStart(2,'0');
+    medicines = [
+      { id: 1, name: 'Blood Pressure Tablet', time: '08:00', dose: '1 tablet before breakfast', repeat: 'daily' },
+      { id: 2, name: 'Vitamin D', time: '13:00', dose: '1 capsule after lunch', repeat: 'daily' },
+      { id: 3, name: 'Metformin 500mg', time: '20:00', dose: '1 tablet after dinner', repeat: 'daily' },
+    ];
+    save();
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock();
+  render();
+</script>
+</body>
+</html>
